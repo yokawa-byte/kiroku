@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>業務時間の記録</title>
+<style>
+:root{--blue:#1F4E8C;--blue-l:#E8EFF8;--blue-m:#9DB5D6;--ink:#1B1F24;--sub:#5B6470;--line:#D5DBE3;--gray:#F2F4F6;--orange:#D9730D;--orange-l:#FDF3E8;--red:#B8322A;--green:#2E7D4F;--green-l:#E7F4EC}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI","Meiryo",system-ui,sans-serif;background:#F4F6F9;color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;padding-bottom:40px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.wrap{max-width:640px;margin:0 auto;padding:16px}
+header{background:#fff;border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;gap:12px;padding-top:12px;padding-bottom:12px}
+header h1{font-size:18px;font-weight:700;flex:1}
+.logo{font-weight:900;letter-spacing:-.02em;font-size:18px;display:inline-flex}
+.tabs{display:flex;gap:4px;background:var(--gray);padding:4px;border-radius:10px;margin:16px 0}
+.tabs button{flex:1;border:0;background:none;padding:9px 4px;border-radius:7px;font-size:14px;font-weight:700;color:var(--sub)}
+.tabs button.on{background:#fff;color:var(--blue);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:14px}
+.card h2{font-size:15px;font-weight:700;margin-bottom:10px;color:var(--blue)}
+.hint{font-size:13px;color:var(--sub)}
+label.f{display:block;font-size:13px;font-weight:700;color:var(--sub);margin:12px 0 6px}
+label.f:first-child{margin-top:0}
+input[type=text],input[type=number],select,textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:16px;background:#fff}
+textarea{min-height:90px;resize:vertical}
+.seg{display:flex;border:1.5px solid var(--blue);border-radius:9px;overflow:hidden}
+.seg button{flex:1;border:0;background:#fff;padding:10px 6px;font-size:15px;font-weight:700;color:var(--blue)}
+.seg button+button{border-left:1.5px solid var(--blue)}
+.seg button.on{background:var(--blue);color:#fff}
+.tasks{display:grid;gap:8px}
+.gseg{margin-bottom:4px}.gseg button{font-size:14px;padding:9px 4px}
+.task{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:11px 14px;font-size:15px;font-weight:700}
+.task:hover{border-color:var(--blue-m)}
+.task{cursor:default}
+.task .tx{flex:1;min-width:0}
+.task .bt{display:flex;flex-direction:column;gap:6px;flex:none}
+.task .bt button{border:0;font:inherit;font-size:13px;font-weight:700;padding:7px 12px;border-radius:20px;white-space:nowrap;cursor:pointer}
+.task .go{color:#fff;background:var(--blue)}
+.task .put{color:var(--orange);background:#fff;border:1.5px solid var(--orange)!important}
+.task small{display:block;font-size:12px;font-weight:400;color:var(--sub)}
+.task .hr{display:block;font-style:normal;font-size:12px;font-weight:500;color:var(--orange);margin-top:2px;line-height:1.5}
+.run{border:2px solid var(--orange);background:var(--orange-l);border-radius:14px;padding:20px;text-align:center;margin-bottom:14px}
+.run .nm{font-weight:700}
+.run .clk{font-size:52px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--orange);line-height:1.2;margin:6px 0 12px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:0;border-radius:10px;padding:12px 18px;font-size:15px;font-weight:700;background:var(--blue);color:#fff}
+.btn.big{flex:1;padding:15px}
+.btn.o{background:var(--orange)}
+.btn.g{background:#fff;color:var(--blue);border:1.5px solid var(--blue)}
+.btn.s{padding:8px 12px;font-size:13px}
+.btn.del{background:#fff;color:var(--red);border:1px solid var(--line);padding:6px 10px;font-size:12px}
+.btn:disabled{opacity:.4;cursor:default}
+.log{list-style:none}
+.log li{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.log li:last-child{border-bottom:0}
+.log .m{font-weight:700;font-size:18px;min-width:64px;text-align:right;font-variant-numeric:tabular-nums}
+.log .t{flex:1;min-width:0}
+.log .t small{display:block;color:var(--sub);font-size:12px}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:4px;margin-right:4px;vertical-align:1px}
+.tag.pre{background:var(--gray);color:var(--sub)}.tag.post{background:var(--blue-l);color:var(--blue)}
+.tag.est{background:var(--orange-l);color:var(--orange)}.tag.act{background:var(--green-l);color:var(--green)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+th{font-size:12px;color:var(--sub);font-weight:700}
+td.dn{color:var(--green);font-weight:700}td.up{color:var(--red);font-weight:700}
+.empty{text-align:center;color:var(--sub);font-size:14px;padding:16px 0}
+.drop{border:2px dashed var(--blue-m);border-radius:12px;padding:22px;text-align:center;color:var(--sub);font-size:14px}
+.drop.ov{background:var(--blue-l)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1B2028;color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:9;max-width:90vw;text-align:center}
+.note{background:var(--gray);border-radius:10px;padding:12px 14px;font-size:13px;color:#3A424D}
+.note b{color:var(--ink)}
+.dlg{position:fixed;inset:0;background:rgba(20,26,36,.5);display:flex;align-items:flex-end;justify-content:center;z-index:8}
+.dlg .in{background:#fff;width:100%;max-width:640px;border-radius:16px 16px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom))}
+@media(min-width:700px){.dlg{align-items:center}.dlg .in{border-radius:16px}}
+.dlg h3{font-size:17px;margin-bottom:6px}
+.hide{display:none!important}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.chips button{border:1.5px solid var(--blue-m);background:#fff;color:var(--blue);border-radius:20px;padding:7px 12px;font-size:14px;font-weight:700}
+.chips button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.minrow{display:flex;align-items:center;gap:8px}.minrow input{flex:1}.minrow span{font-weight:700;color:var(--sub)}
+pre.out{white-space:pre-wrap;font-size:12px;background:var(--gray);border-radius:8px;padding:10px;max-height:180px;overflow:auto;margin:10px 0}
+</style>
+</head>
+<body>
+<header><div class="wrap"><h1 id="ttl">業務時間の記録</h1><span class="logo" id="logo"></span></div></header>
+<div class="wrap">
+  <div class="tabs" id="tabs">
+    <button data-v="rec" class="on">記録する</button>
+    <button data-v="list">記録一覧</button>
+    <button data-v="send">送る</button>
+  </div>
+
+  <!-- 記録する -->
+  <section id="v-rec">
+    <div class="card">
+      <label class="f" for="nm">お名前</label>
+      <input type="text" id="nm" placeholder="例：山田" autocomplete="name">
+      <label class="f">いまは研修の</label>
+      <div class="seg" id="ph"><button data-p="pre">前</button><button data-p="post">後</button></div>
+    </div>
+    <div id="unsent"></div>
+    <div id="running"></div>
+    <div class="card">
+      <h2>業務ごとに、時間をご記録ください</h2>
+      <p class="hint" style="margin-bottom:12px"><b style="color:var(--blue)">計測する</b>：業務の開始時に押し、終わったら「終了して記録」を押します。途中でブラウザを閉じても大丈夫です（続きは同じパソコン・ブラウザで）。<br><b style="color:var(--orange)">手動で入れる</b>：以前かかった時間や、想定の時間を入れるとき。</p>
+      <div class="tasks" id="tasks"></div>
+    </div>
+    <div class="note" id="howto"></div>
+  </section>
+
+  <!-- 一覧 -->
+  <section id="v-list" class="hide">
+    <div class="card"><h2>あなたの記録</h2><ul class="log" id="log"></ul></div>
+    <div class="card"><h2>研修の前と後（1回あたりの平均）</h2><div id="mine"></div></div>
+  </section>
+
+  <!-- 送る -->
+  <section id="v-send" class="hide">
+    <div class="card">
+      <h2>記録を送る</h2>
+      <p class="hint">記録は、送付した時点でこちらに届いていますので、通常この画面は使いません。送付がうまくいかない場合のみ、下のボタンで記録のファイルを保存し、メールでお送りください。</p>
+      <div class="row" style="margin-top:14px">
+        <button class="btn g big" id="share">記録をファイルで保存する</button>
+      </div>
+      <p class="hint" style="margin-top:10px">押すと、記録のファイル（CSV）が保存されます。</p>
+      <pre class="out" id="out"></pre>
+    </div>
+    <div class="card">
+      <h2>記録を消す</h2>
+      <p class="hint" style="margin-bottom:10px">計測の期間が終わり、すべての記録の送付が済んだあとにお使いください。</p>
+      <button class="btn del" id="wipe">この端末の記録をすべて消す</button>
+    </div>
+  </section>
+
+  <!-- 集計（講師用） -->
+  <section id="v-sum" class="hide">
+    <div class="card">
+      <h2>集計（講師用）</h2>
+      <p class="hint" style="margin-bottom:12px">受講者から届いたファイル（CSV）を入れるか、届いた文字を貼り付けてください。何人分でもまとめて集計します。</p>
+      <div class="drop" id="drop">ここにファイルをドロップ<br>または <button class="btn s g" id="pick">ファイルを選ぶ</button><input type="file" id="file" accept=".csv,text/csv,text/plain" multiple class="hide"></div>
+      <label class="f" for="paste">文字で届いた場合はここに貼り付け</label>
+      <textarea id="paste" placeholder="受講者の「文字をコピー」の内容をそのまま貼り付け"></textarea>
+      <div class="row" style="margin-top:10px"><button class="btn" id="addp">貼り付けた分を追加</button><button class="btn g" id="clr">集計をやり直す</button></div>
+    </div>
+    <div class="card"><h2>結果</h2><div id="sum"></div><div class="row" style="margin-top:12px"><button class="btn g s" id="sumcsv">結果をCSVで保存</button></div></div>
+  </section>
+
+  <!-- 設定（講師用） -->
+  <section id="v-set" class="hide">
+    <div class="card">
+      <h2>設定（講師用）</h2>
+      <p class="hint" style="margin-bottom:6px">研修ごとに、記録してもらう業務を変えられます。作ったリンクを受講者に送ってください。</p>
+      <label class="f" for="st">画面のタイトル</label>
+      <input type="text" id="st">
+      <label class="f" for="sk">業務（1行に1つ。「業務名｜補足｜ヒアリングで伺った内容」、「# 見出し」でまとまりを作れます）</label>
+      <textarea id="sk" style="min-height:140px"></textarea>
+      <label class="f" for="sf">記録の送信先（任意）：{"u":"ウェブアプリのURL","k":"合言葉"}</label>
+      <input type="text" id="sf" placeholder="{&quot;u&quot;:&quot;https://docs.google.com/forms/...&quot;,&quot;e&quot;:{...}}">
+      <label class="f" for="sh">案内文（記録画面の下に出ます）</label>
+      <textarea id="sh"></textarea>
+      <div class="row" style="margin-top:12px"><button class="btn" id="mk">受講者用リンクを作る</button></div>
+      <pre class="out hide" id="link"></pre>
+      <div class="row hide" id="linkrow"><button class="btn g s" id="cplink">リンクをコピー</button><a class="btn g s" id="oplink" target="_blank" rel="noopener" style="text-decoration:none">開いて確かめる</a></div>
+    </div>
+    <div class="note">集計画面のリンク：このページのURLの最後に <b>#sum</b> を付けて開きます。設定画面は <b>#set</b> です。</div>
+  </section>
+</div>
+
+<div id="dlg" class="dlg hide"><div class="in" id="dlgin"></div></div>
+
+<script>
+(function(){
+  'use strict';
+  // 記録の送信先（Googleフォーム）。空ならフォーム送信なし
+  var FORM_CONF=null;
+  // 記録の自動送信先（Apps Scriptのウェブアプリ）。{u:URL,k:合言葉}
+  var HOOK_CONF={"u":"https://script.google.com/macros/s/AKfycbwR-qqR9W77nYEu1DgE3ELE-7-qViGnMzkRpKZiRH9SPkJ7J9pI1b0TI8uU4gGj4yWmIg/exec","k":"f179dac9-0a1"};
+  // ---------- 設定 ----------
+  var DEF={
+    title:'業務時間の記録',
+    tasks:[
+      {g:'商談の前',n:'商談前の下調べ',d:'取引先・競合の調査、前回の内容の確認。1社ごと',h:'競合の価格や取引先の業績を調べておきたい'},
+      {g:'商談の前',n:'取引先に合わせた資料を作る',d:'商品の選び直しや色の変更など。1社ごと',h:'提案先に合わせて、色や内容を変えたい'},
+      {g:'商談の後',n:'商談後のまとめ',d:'議事録、取引先情報の整理、お礼メールまで。1商談ごと',h:''},
+      {g:'ふだんの業務',n:'商品資料を一から作る',d:'小売用の商品一覧（チラシ）。1部ごと',h:'小売用と業務用で、資料の形を決めておきたい'},
+      {g:'ふだんの業務',n:'商品資料を更新・修正する',d:'新商品の追加、価格・規格の変更など。1回ごと',h:'新商品の発売時の資料の修正'},
+      {g:'ふだんの業務',n:'規格書を作る',d:'1商品（1社分）ごと',h:''},
+      {g:'ふだんの業務',n:'定期的な調べもの',d:'研修後は、届いた結果を読む時間',h:'レシピや流行、見ている年代の情報がほしい'}
+    ],
+    howto:'<b>お願い</b>：各業務2〜5回（難しければ1回でも）ご記録ください。計測のためだけに行うのが難しい業務は、「手動で入れる」でご入力ください。メモ欄には、取引先のお名前や金額は書かないでください。'
+  };
+  function b64e(s){return btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+  function b64d(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return decodeURIComponent(escape(atob(s)))}
+  DEF.form=FORM_CONF;DEF.hook=HOOK_CONF;
+  var CFG=DEF;
+  try{var q=/[?&#]c=([^&#]+)/.exec(location.search+location.hash);if(q){var c=JSON.parse(b64d(q[1]));if(c&&c.tasks&&c.tasks.length)CFG={title:c.title||DEF.title,tasks:c.tasks,howto:c.howto!=null?c.howto:DEF.howto,form:c.form||null,hook:c.hook||null}}}catch(e){}
+  var KEY='renica-keisoku:'+b64e(CFG.title+'|'+CFG.tasks.map(function(t){return t.n}).join('/')).slice(0,40);
+
+  // ---------- 保存 ----------
+  var mem={};
+  function load(){try{var s=localStorage.getItem(KEY);return s?JSON.parse(s):null}catch(e){return mem[KEY]||null}}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){mem[KEY]=S}}
+  var S=load()||{name:'',phase:'pre',recs:[],run:null};
+  if(!S.recs)S.recs=[];
+
+  // ---------- 小物 ----------
+  var $=function(id){return document.getElementById(id)};
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function pad(n){return n<10?'0'+n:''+n}
+  function fmtDate(t){var d=new Date(t);return d.getFullYear()+'/'+pad(d.getMonth()+1)+'/'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes())}
+  function toast(m){[].forEach.call(document.querySelectorAll('.toast'),function(x){x.remove()});var t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(function(){t.remove()},2600)}
+  function PH(p){return p==='post'?'後':'前'}
+  function avg(a){if(!a.length)return null;var s=0;a.forEach(function(x){s+=x});return s/a.length}
+  function r1(x){return Math.round(x*10)/10}
+  (function(){var w='renica',f=[27,32,40],t=[42,92,160],el=$('logo');for(var i=0;i<w.length;i++){var k=i/(w.length-1),s=document.createElement('span');s.textContent=w[i];s.style.color='rgb('+f.map(function(v,j){return Math.round(v+(t[j]-v)*k)}).join(',')+')';el.appendChild(s)}})();
+  document.title=CFG.title; $('ttl').textContent=CFG.title;
+
+  // ---------- 画面切替 ----------
+  var VIEWS=['rec','list','send','sum','set'];
+  function show(v){
+    VIEWS.forEach(function(x){$('v-'+x).classList.toggle('hide',x!==v)});
+    [].forEach.call($('tabs').children,function(b){b.classList.toggle('on',b.dataset.v===v)});
+    $('tabs').classList.toggle('hide',v==='sum'||v==='set');
+    if(v==='rec')renderUnsent();if(v==='list')renderList(); if(v==='send')renderSend(); if(v==='set')renderSet();
+    window.scrollTo(0,0);
+  }
+  [].forEach.call($('tabs').children,function(b){b.onclick=function(){show(b.dataset.v)}});
+
+  // ---------- 記録する ----------
+  $('nm').value=S.name||'';
+  $('nm').oninput=function(){S.name=this.value.trim();save()};
+  function renderPhase(){[].forEach.call($('ph').children,function(b){b.classList.toggle('on',b.dataset.p===S.phase)})}
+  [].forEach.call($('ph').children,function(b){b.onclick=function(){S.phase=b.dataset.p;save();renderPhase()}});
+  $('howto').innerHTML=CFG.howto;
+  var GROUPS=[];CFG.tasks.forEach(function(t){var g=t.g||'';if(GROUPS.indexOf(g)<0)GROUPS.push(g)});
+  if(!S.grp||GROUPS.indexOf(S.grp)<0)S.grp=GROUPS[0];
+  function renderTasks(){
+    var h='';
+    if(GROUPS.length>1){h+='<div class="seg gseg" id="gseg">'+GROUPS.map(function(g){return'<button data-g="'+esc(g)+'"'+(g===S.grp?' class="on"':'')+'>'+esc(g||'その他')+'</button>'}).join('')+'</div>'}
+    CFG.tasks.forEach(function(t,i){if(GROUPS.length>1&&(t.g||'')!==S.grp)return;
+      h+='<div class="task"><span class="tx">'+esc(t.n)+(t.h?'<em class="hr">ヒアリングより：「'+esc(t.h)+'」</em>':'')+(t.d?'<small>'+esc(t.d)+'</small>':'')+'</span><span class="bt"><button class="go" data-i="'+i+'">計測する</button><button class="put" data-i="'+i+'">手動で入れる</button></span></div>'});
+    $('tasks').innerHTML=h;
+    [].forEach.call($('tasks').querySelectorAll('button.go'),function(b){b.onclick=function(){start(+b.dataset.i)}});
+    [].forEach.call($('tasks').querySelectorAll('button.put'),function(b){b.onclick=function(){manual(+b.dataset.i)}});
+    [].forEach.call($('tasks').querySelectorAll('#gseg button'),function(b){b.onclick=function(){S.grp=b.dataset.g;save();renderTasks();renderRun()}});
+  }
+  function needName(){if(!S.name){toast('先にお名前をご入力ください');$('nm').focus();return true}return false}
+  function start(i){
+    if(needName())return;
+    if(S.run){toast('計測中の業務を、先に終了してください');return}
+    S.run={task:CFG.tasks[i].n,phase:S.phase,t0:Date.now(),acc:0,paused:false};save();renderRun();
+  }
+  var tid=null;
+  function runMs(){var r=S.run;return r.acc+(r.paused?0:Date.now()-r.t0)}
+  function renderRun(){
+    clearInterval(tid);var box=$('running');
+    if(!S.run){box.innerHTML='';[].forEach.call($('tasks').querySelectorAll('button.go'),function(b){b.disabled=false;b.style.opacity=''});return}
+    [].forEach.call($('tasks').querySelectorAll('button.go'),function(b){b.disabled=true;b.style.opacity=.45});
+    box.innerHTML='<div class="run"><div class="nm"><span class="tag '+(S.run.phase==='post'?'post':'pre')+'">研修の'+PH(S.run.phase)+'</span>'+esc(S.run.task)+'</div><div class="clk" id="clk">0:00</div><div class="row"><button class="btn o big" id="fin">終了して記録</button><button class="btn g" id="pz">'+(S.run.paused?'再開':'一時停止')+'</button><button class="btn del" id="cx">取り消し</button></div></div>';
+    function tick(){var s=Math.floor(runMs()/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),ss=s%60;$('clk').textContent=(h?h+':'+pad(m):m)+':'+pad(ss)}
+    tick();tid=setInterval(tick,1000);
+    $('fin').onclick=finish;
+    $('pz').onclick=function(){var r=S.run;if(r.paused){r.t0=Date.now();r.paused=false}else{r.acc+=Date.now()-r.t0;r.paused=true}save();renderRun()};
+    $('cx').onclick=function(){ask('この計測を取り消しますか？（記録されません）','取り消す',function(){S.run=null;save();renderRun()})};
+  }
+  function finish(){
+    var r=S.run,min=Math.max(1,Math.round(runMs()/60000));
+    openDlg('<h3>'+esc(r.task)+'</h3><p class="hint">中断していた時間があれば、修正してください。</p><label class="f" for="dm">かかった時間（分）</label><input type="number" id="dm" inputmode="numeric" min="1" value="'+min+'"><label class="f" for="dn">メモ（任意）</label><input type="text" id="dn" placeholder="例：9品の抽出版、○○店向け"><div class="row" style="margin-top:16px"><button class="btn big" id="ok">記録する</button><button class="btn g" id="ng">戻る</button></div>',function(){
+      $('ok').onclick=function(){var m=+$('dm').value;if(!(m>0)){toast('時間（分）をご入力ください');return}
+        var rec={id:Date.now(),name:S.name,task:r.task,phase:r.phase,at:r.t0,min:Math.round(m),kind:'実測',memo:$('dn').value.trim()};S.recs.push(rec);S.run=null;save();closeDlg();renderRun();afterRecord(rec,'記録しました（'+Math.round(m)+'分）')};
+      $('ng').onclick=closeDlg;
+    });
+  }
+  
+  function manual(pre){
+    if(needName())return;
+    var opts='',og=null;CFG.tasks.forEach(function(t){var g=t.g||'';if(g!==og){if(og)opts+='</optgroup>';if(g)opts+='<optgroup label="'+esc(g)+'">';og=g}opts+='<option'+(CFG.tasks.indexOf(t)===pre?' selected':'')+'>'+esc(t.n)+'</option>'});if(og)opts+='</optgroup>';
+    openDlg('<h3>手動で入れる</h3><p class="hint">以前かかった時間や、想定の時間を入れるときにお使いください。</p><label class="f">業務</label><select id="mt">'+opts+'</select><label class="f">研修の</label><div class="seg" id="mp"><button data-p="pre">前</button><button data-p="post">後</button></div><label class="f">この時間は</label><div class="seg" id="mkd"><button data-k="実測">今回計測した</button><button data-k="想定">以前かかった時間・想定の時間</button></div><label class="f" for="mm">1回あたりの時間</label><div class="chips" id="mch"><button data-m="5">5分</button><button data-m="10">10分</button><button data-m="15">15分</button><button data-m="30">30分</button><button data-m="45">45分</button><button data-m="60">1時間</button><button data-m="90">1時間半</button><button data-m="120">2時間</button><button data-m="180">3時間</button></div><div class="minrow"><input type="number" id="mm" inputmode="numeric" min="1" placeholder="直接入力も可"><span>分</span></div><label class="f" for="mn">メモ（任意）</label><input type="text" id="mn"><div class="row" style="margin-top:16px"><button class="btn big" id="ok">記録する</button><button class="btn g" id="ng">戻る</button></div>',function(){
+      var ph=S.phase,kd='実測';
+      function seg(id,attr,val,set){[].forEach.call($(id).children,function(b){b.classList.toggle('on',b.dataset[attr]===val);b.onclick=function(){set(b.dataset[attr]);seg(id,attr,b.dataset[attr],set)}})}
+      seg('mp','p',ph,function(v){ph=v});seg('mkd','k',kd,function(v){kd=v});
+      function syncChips(){[].forEach.call($('mch').children,function(c){c.classList.toggle('on',String(c.dataset.m)===String($('mm').value))})}
+      [].forEach.call($('mch').children,function(c){c.onclick=function(){$('mm').value=c.dataset.m;syncChips()}});
+      $('mm').oninput=syncChips;
+      $('ok').onclick=function(){var m=+$('mm').value;if(!(m>0)){toast('時間（分）をご入力ください');return}
+        var rec={id:Date.now(),name:S.name,task:$('mt').value,phase:ph,at:Date.now(),min:Math.round(m),kind:kd,memo:$('mn').value.trim()};S.recs.push(rec);save();closeDlg();afterRecord(rec,'記録しました')};
+      $('ng').onclick=closeDlg;
+    });
+  };
+  function formUrl(r){
+    var F=CFG.form;if(!F||!F.u||!F.e)return null;var e=F.e,q=['usp=pp_url'];
+    function add(id,v){if(id)q.push('entry.'+id+'='+encodeURIComponent(v))}
+    add(e.n,r.name);add(e.t,r.task);add(e.p,r.phase==='post'?'研修の後':'研修の前');add(e.m,String(r.min));add(e.k,r.kind);add(e.x,r.memo||'');
+    return F.u+'?'+q.join('&');
+  }
+  var sending=false;
+  function hookSend(list){
+    var H=CFG.hook;if(!H||!H.k||!list.length)return Promise.resolve(0);
+    var recs=list.map(function(r){return{id:String(r.id),n:r.name,t:r.task,p:r.phase,m:r.min,kd:r.kind,x:r.memo||'',at:r.at}});
+    function done(){list.forEach(function(r){r.sent=true});save();closeDlg();toast('送付しました。記録が届きました');return list.length}
+    // Googleのページから開いている場合
+    if(window.google&&google.script&&google.script.run){
+      return new Promise(function(res){
+        google.script.run.withSuccessHandler(function(n){res(n>0?done():0)}).withFailureHandler(function(){res(0)}).receive({k:H.k,b:JSON.stringify(recs)});
+      });
+    }
+    if(!H.u)return Promise.resolve(0);
+    // それ以外：10件ずつ送り、届いた返事を確かめる
+    var chunks=[];for(var i=0;i<recs.length;i+=10)chunks.push(recs.slice(i,i+10));
+    function one(c){return new Promise(function(res){
+      var cb='__kr'+Date.now()+Math.floor(Math.random()*1e6),sc=document.createElement('script'),fin=false;
+      function end(v){if(fin)return;fin=true;clearTimeout(t);try{delete window[cb]}catch(e){window[cb]=undefined}sc.remove();res(v)}
+      var t=setTimeout(function(){end(false)},20000);
+      window[cb]=function(o){end(!!(o&&o.ok))};
+      sc.onerror=function(){end(false)};
+      sc.src=H.u+'?k='+encodeURIComponent(H.k)+'&cb='+cb+'&b='+encodeURIComponent(JSON.stringify(c));
+      document.body.appendChild(sc);
+    })}
+    return chunks.reduce(function(pr,c){return pr.then(function(ok){return ok?one(c):false})},Promise.resolve(true)).then(function(ok){return ok?done():0});
+  }
+  function retryUnsent(silent){
+    if(!CFG.hook||sending)return;var u=S.recs.filter(function(r){return !r.sent});if(!u.length)return;
+    sending=true;hookSend(u).then(function(n){sending=false;if(!n&&!silent)toast('送付できませんでした。記録はこの画面に残っています。少し時間をおいて、もう一度お試しください')});
+  }
+  function afterRecord(r,msg){
+    if(CFG.hook){
+      openDlg('<h3>記録しました</h3><p class="hint">続けて、この記録を送付してください。</p><div class="note" style="margin:12px 0"><b>'+esc(r.task)+'</b>　'+r.min+'分（'+esc(r.kind==='想定'?'以前かかった時間・想定の時間':'今回計測した時間')+'・研修の'+PH(r.phase)+'）</div><div class="row"><button class="btn big" id="hs">この記録を送付する</button></div><div class="row" style="margin-top:8px"><button class="btn g" id="hl">あとで送付する</button></div>',function(){
+        $('hs').onclick=function(){var bt=this;bt.disabled=true;bt.textContent='送付しています…';hookSend([r]).then(function(n){if(!n){closeDlg();toast('送付できませんでした。記録は残っていますので、あとで「まとめて送付する」からお試しください')}})};
+        $('hl').onclick=function(){closeDlg();toast('画面上部の「まだ送付していない記録」から、あとで送付できます')};
+      });
+      return;
+    }
+    var u=formUrl(r);
+    if(!u){toast(msg);return}
+    openDlg('<h3>あと1ステップです</h3><p class="hint">下のボタンでフォームを開き、「送信」を押してください。内容は入力済みです。<br>送信すると、記録がこちらに届き、データが消える心配がなくなります。</p><div class="note" style="margin:12px 0"><b>'+esc(r.task)+'</b>　'+r.min+'分（'+esc(r.kind)+'・研修の'+PH(r.phase)+'）</div><div class="row"><a class="btn big" id="fo" href="'+esc(u)+'" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">フォームを開いて送信する</a></div><div class="row" style="margin-top:8px"><button class="btn g" id="fl">あとで送る</button></div>',function(){
+      $('fo').onclick=function(){r.sent=true;save();setTimeout(function(){closeDlg();toast('送信をお願いします。送信後、フォームのタブは閉じて構いません')},300)};
+      $('fl').onclick=function(){closeDlg();toast('記録一覧から、あとで送れます')};
+    });
+  }
+  function openDlg(html,bind){$('dlgin').innerHTML=html;$('dlg').classList.remove('hide');bind&&bind()}
+  function closeDlg(){$('dlg').classList.add('hide');$('dlgin').innerHTML='';renderUnsent();if(!$('v-list').classList.contains('hide'))renderList()}
+  // 確認ダイアログ（Claude上ではブラウザのconfirmが使えないため、画面内で出す）
+  function ask(msg,okLabel,fn){
+    openDlg('<h3>'+esc(msg)+'</h3><div class="row" style="margin-top:16px"><button class="btn big" id="ak-ok" style="background:var(--red)">'+esc(okLabel)+'</button><button class="btn g" id="ak-ng">やめる</button></div>',function(){
+      $('ak-ok').onclick=function(){closeDlg();fn()};$('ak-ng').onclick=closeDlg;
+    });
+  }
+  $('dlg').onclick=function(e){if(e.target===this)closeDlg()};
+
+  // ---------- 一覧 ----------
+  function compare(recs,byName){
+    var keys=[],map={};
+    recs.forEach(function(r){var k=(byName?r.name+'\u0000':'')+r.task;if(!map[k]){map[k]={name:r.name,task:r.task,pre:[],post:[],est:0,n:0};keys.push(k)}var m=map[k];m[r.phase==='post'?'post':'pre'].push(+r.min);m.n++;if(r.kind==='想定')m.est++});
+    return keys.map(function(k){var m=map[k],a=avg(m.pre),b=avg(m.post);m.a=a;m.b=b;m.diff=(a!=null&&b!=null)?b-a:null;m.rate=(a&&b!=null)?(a-b)/a:null;return m});
+  }
+  function table(rows,byName){
+    if(!rows.length)return'<p class="empty">まだ記録がありません</p>';
+    var h='<table><tr><th>'+(byName?'お名前／':'')+'業務</th><th>前（分）</th><th>後（分）</th><th>差</th><th>件数</th></tr>';
+    rows.forEach(function(m){
+      var d=m.diff==null?'—':(m.diff>0?'+':'')+r1(m.diff)+'分'+(m.rate!=null?'<br><small>'+(m.rate>=0?'−':'+')+Math.abs(Math.round(m.rate*100))+'%</small>':'');
+      h+='<tr><td>'+(byName?'<b>'+esc(m.name)+'</b><br>':'')+esc(m.task)+(m.est?'<br><small><span class="tag est">想定'+m.est+'件</span></small>':'')+'</td><td>'+(m.a==null?'—':r1(m.a))+'</td><td>'+(m.b==null?'—':r1(m.b))+'</td><td class="'+(m.diff==null?'':m.diff<0?'dn':m.diff>0?'up':'')+'">'+d+'</td><td>'+m.pre.length+'／'+m.post.length+'</td></tr>'});
+    return h+'</table><p class="hint" style="margin-top:8px">件数は「前／後」。「想定」は実際に測っていない記録の件数です。</p>';
+  }
+  function renderUnsent(){
+    var el=$('unsent');if(!el)return;
+    var n=(CFG.form||CFG.hook)?S.recs.filter(function(r){return !r.sent}).length:0;
+    el.innerHTML=n?'<div class="note" style="margin-bottom:14px;background:var(--orange-l);border:1.5px solid var(--orange)"><b>まだ送付していない記録が'+n+'件あります。</b> <a href="#" id="gosend" style="color:var(--orange);font-weight:700">'+(CFG.hook?'まとめて送付する':'記録一覧から送信する')+'</a></div>':'';
+    var g=$('gosend');if(g)g.onclick=function(e){e.preventDefault();if(CFG.hook)retryUnsent(false);else show('list')};
+  }
+  function renderList(){
+    var l=$('log');
+    if(!S.recs.length){l.innerHTML='<li class="empty" style="display:block">まだ記録がありません</li>'}
+    else{l.innerHTML=S.recs.slice().reverse().map(function(r){return'<li><span class="t"><span class="tag '+(r.phase==='post'?'post':'pre')+'">'+PH(r.phase)+'</span><span class="tag '+(r.kind==='想定'?'est':'act')+'">'+r.kind+'</span>'+esc(r.task)+'<small>'+fmtDate(r.at)+(r.memo?'　'+esc(r.memo):'')+'</small></span><span class="m">'+r.min+'分</span>'+((CFG.form||CFG.hook)?(r.sent?'<span class="tag act" style="white-space:nowrap">送付済み</span>':'<button class="btn s" data-send="'+r.id+'" style="padding:6px 10px;font-size:12px;background:var(--orange)">送付</button>'):'')+'<button class="btn del" data-id="'+r.id+'">削除</button></li>'}).join('');
+      [].forEach.call(l.querySelectorAll('button[data-send]'),function(b){b.onclick=function(){var r=S.recs.filter(function(x){return String(x.id)===b.dataset.send})[0];if(r){if(CFG.hook)hookSend([r]).then(function(n){if(!n)toast('送付できませんでした')});else afterRecord(r,'');}}});
+      [].forEach.call(l.querySelectorAll('button[data-id]'),function(b){b.onclick=function(){ask('この記録を削除しますか？','削除する',function(){S.recs=S.recs.filter(function(r){return String(r.id)!==b.dataset.id});save();renderList()})}})}
+    $('mine').innerHTML=table(compare(S.recs,false),false);
+  }
+
+  // ---------- ファイル保存（Claude上ではdownloads、それ以外はブラウザ） ----------
+  var DL=null;
+  try{if(window.claude&&typeof window.claude.use==='function'){window.claude.use('downloads').then(function(d){DL=d}).catch(function(){})}}catch(e){}
+  function saveFile(name,text,okMsg){
+    var data='\ufeff'+text;
+    if(DL){DL.save({filename:name,data:data}).then(function(){toast(okMsg)},function(e){var c=e&&e.code;if(c==='declined')return;if(c==='rate_limited'){toast('少し待ってから、もう一度押してください');return}plainSave(name,data,okMsg)});return}
+    plainSave(name,data,okMsg);
+  }
+  function plainSave(name,data,okMsg){
+    var blob=new Blob([data],{type:'text/csv'});
+    try{var f=new File([blob],name,{type:'text/csv'});if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f]}).catch(function(){});return}}catch(e){}
+    var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500);toast(okMsg);
+  }
+  // ---------- 送る ----------
+  var HEAD=['お名前','業務','研修の前後','日時','分','実測/想定','メモ'];
+  function cell(v){v=String(v==null?'':v);return/[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+  function toCSV(recs){return[HEAD.join(',')].concat(recs.map(function(r){return[r.name,r.task,PH(r.phase),fmtDate(r.at),r.min,r.kind,r.memo].map(cell).join(',')})).join('\n')}
+  function renderSend(){$('out').textContent=S.recs.length?toCSV(S.recs):'まだ記録がありません'}
+  function fname(){var d=new Date();return '業務時間の記録_'+(S.name||'名前なし')+'_'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'.csv'}
+  $('share').onclick=function(){if(!S.recs.length){toast('まだ記録がありません');return}saveFile(fname(),toCSV(S.recs),'保存しました。メールでお送りください')};
+  function copyText(t){
+    function fb(){var ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('コピーしました')}catch(e){toast('コピーできませんでした。枠の中を長押しして選んでください')}ta.remove()}
+    try{navigator.clipboard.writeText(t).then(function(){toast('コピーしました')},fb)}catch(e){fb()}
+  }
+  if($('copy'))$('copy').onclick=function(){if(!S.recs.length){toast('まだ記録がありません');return}copyText(toCSV(S.recs))};
+  $('wipe').onclick=function(){if(!S.recs.length){toast('記録はありません');return}var un=S.recs.filter(function(r){return !r.sent}).length;ask(un?'まだ送付していない記録が'+un+'件あります。消すと、その記録は届きません。それでもすべて消しますか？':'この端末の記録をすべて消します。よろしいですか？','すべて消す',function(){S.recs=[];S.run=null;save();renderSend();renderRun();toast('消しました')})};
+
+  // ---------- 集計 ----------
+  var POOL=[];
+  function parseCSV(t){
+    t=t.replace(/^﻿/,'');var rows=[],row=[],f='',q=false;
+    for(var i=0;i<t.length;i++){var c=t[i];
+      if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++}else q=false}else f+=c}
+      else if(c==='"')q=true;else if(c===','){row.push(f);f=''}else if(c==='\n'||c==='\r'){if(c==='\r'&&t[i+1]==='\n')i++;row.push(f);rows.push(row);row=[];f=''}else f+=c}
+    if(f!==''||row.length){row.push(f);rows.push(row)}
+    var out=[];rows.forEach(function(r){if(r.length<6||r[0]===HEAD[0])return;var m=parseFloat(r[4]);if(!(m>0))return;out.push({name:r[0].trim(),task:r[1].trim(),phase:r[2].trim()==='後'?'post':'pre',at:r[3],min:m,kind:(r[5]||'').trim()==='想定'?'想定':'実測',memo:r[6]||''})});
+    return out;
+  }
+  function addRecs(list){
+    var seen={};POOL.forEach(function(r){seen[[r.name,r.task,r.phase,r.at,r.min,r.kind].join('|')]=1});
+    var n=0;list.forEach(function(r){var k=[r.name,r.task,r.phase,r.at,r.min,r.kind].join('|');if(!seen[k]){seen[k]=1;POOL.push(r);n++}});
+    renderSum();toast(n+'件を追加しました'+(list.length>n?'（重複'+(list.length-n)+'件は除きました）':''));
+  }
+  function readFiles(fs){[].forEach.call(fs,function(f){var rd=new FileReader();rd.onload=function(){addRecs(parseCSV(String(rd.result)))};rd.readAsText(f,'utf-8')})}
+  $('pick').onclick=function(e){e.preventDefault();$('file').click()};
+  $('file').onchange=function(){readFiles(this.files);this.value=''};
+  var dp=$('drop');
+  dp.ondragover=function(e){e.preventDefault();dp.classList.add('ov')};dp.ondragleave=function(){dp.classList.remove('ov')};
+  dp.ondrop=function(e){e.preventDefault();dp.classList.remove('ov');readFiles(e.dataTransfer.files)};
+  $('addp').onclick=function(){var t=$('paste').value.trim();if(!t)return;var r=parseCSV(t);if(!r.length){toast('読み取れませんでした');return}addRecs(r);$('paste').value=''};
+  $('clr').onclick=function(){ask('集計をやり直しますか？','やり直す',function(){POOL=[];renderSum()})};
+  function renderSum(){
+    var people={};POOL.forEach(function(r){people[r.name]=1});
+    $('sum').innerHTML=(POOL.length?'<p class="hint" style="margin-bottom:8px">'+Object.keys(people).length+'人・'+POOL.length+'件</p>':'')+
+      (POOL.length?'<h2 style="margin-top:4px">業務ごと（全員）</h2>'+table(compare(POOL,false),false)+'<h2 style="margin-top:18px">お名前ごと</h2>'+table(compare(POOL,true),true):table([],false));
+  }
+  $('sumcsv').onclick=function(){
+    if(!POOL.length){toast('まだデータがありません');return}
+    var L=['区分,お名前,業務,前の平均（分）,後の平均（分）,差（分）,削減率,前の件数,後の件数,想定の件数'];
+    function line(lbl,m){return[lbl,lbl==='全員'?'':m.name,m.task,m.a==null?'':r1(m.a),m.b==null?'':r1(m.b),m.diff==null?'':r1(m.diff),m.rate==null?'':Math.round(m.rate*100)+'%',m.pre.length,m.post.length,m.est].map(cell).join(',')}
+    compare(POOL,false).forEach(function(m){L.push(line('全員',m))});compare(POOL,true).forEach(function(m){L.push(line('個人',m))});
+    L.push('');L.push(HEAD.join(','));POOL.forEach(function(r){L.push([r.name,r.task,PH(r.phase),r.at,r.min,r.kind,r.memo].map(cell).join(','))});
+    saveFile('業務時間の集計.csv',L.join('\n'),'保存しました');
+  };
+
+  // ---------- 設定 ----------
+  function renderSet(){
+    $('st').value=CFG.title;
+    var L=[],g=null;CFG.tasks.forEach(function(t){if((t.g||'')!==g){g=t.g||'';if(g)L.push('# '+g)}L.push(t.n+'｜'+(t.d||'')+(t.h?'｜'+t.h:''))});$('sk').value=L.join('\n');
+    $('sf').value=CFG.hook?JSON.stringify(CFG.hook):CFG.form?JSON.stringify(CFG.form):'';
+    $('sh').value=CFG.howto.replace(/<br>/g,'\n').replace(/<\/?b>/g,'');
+  }
+  $('mk').onclick=function(){
+    var cg='',tasks=$('sk').value.split('\n').map(function(l){l=l.trim();if(!l)return null;if(/^[#＃]/.test(l)){cg=l.replace(/^[#＃]\s*/,'');return null}var p=l.split(/[｜|]/);return{g:cg,n:p[0].trim(),d:(p[1]||'').trim(),h:(p[2]||'').trim()}}).filter(Boolean);
+    if(!tasks.length){toast('業務を1つ以上入れてください');return}
+    var howto=esc($('sh').value.trim()).replace(/\n/g,'<br>');
+    var fc=null,hc=null;try{var ft=$('sf').value.trim();if(ft){var o=JSON.parse(ft.replace(/^.*?(\{)/,'$1'));if(o.k)hc=o;else fc=o}}catch(e){toast('送信先の設定コードが読み取れませんでした');return}
+    var cfg={title:$('st').value.trim()||DEF.title,tasks:tasks,howto:howto,form:fc,hook:hc};
+    var base=location.href.split('#')[0].split('?')[0];
+    var u=base+'#c='+b64e(JSON.stringify(cfg));
+    $('link').textContent=u;$('link').classList.remove('hide');$('linkrow').classList.remove('hide');$('oplink').href=u;
+    $('cplink').onclick=function(){copyText(u)};
+  };
+
+  // ---------- 起動 ----------
+  renderPhase();renderTasks();renderRun();
+  function route(){var h=(location.hash||'').replace('#','');show(h==='sum'||h==='set'?h:'rec');if(/^c=/.test(h))try{history.replaceState(null,'',location.href)}catch(e){}}
+  addEventListener('hashchange',route);route();
+  document.addEventListener('visibilitychange',function(){if(!document.hidden){if(S.run)renderRun()}});
+})();
+</script>
+</body>
+</html>

@@ -91,7 +91,6 @@ pre.out{white-space:pre-wrap;font-size:12px;background:var(--gray);border-radius
   <div class="tabs" id="tabs">
     <button data-v="rec" class="on">記録する</button>
     <button data-v="list">記録一覧</button>
-    <button data-v="send">送る</button>
   </div>
 
   <!-- 記録する -->
@@ -116,6 +115,7 @@ pre.out{white-space:pre-wrap;font-size:12px;background:var(--gray);border-radius
   <section id="v-list" class="hide">
     <div class="card"><h2>あなたの記録</h2><ul class="log" id="log"></ul></div>
     <div class="card"><h2>研修の前と後（1回あたりの平均）</h2><div id="mine"></div></div>
+    <p class="hint" style="text-align:center">送付がうまくいかない場合：<a href="#" id="share2" style="color:var(--blue);font-weight:700">記録をファイルで保存する</a>（メールでお送りください）</p>
   </section>
 
   <!-- 送る -->
@@ -374,7 +374,7 @@ pre.out{white-space:pre-wrap;font-size:12px;background:var(--gray);border-radius
   function renderList(){
     var l=$('log');
     if(!S.recs.length){l.innerHTML='<li class="empty" style="display:block">まだ記録がありません</li>'}
-    else{l.innerHTML=S.recs.slice().reverse().map(function(r){return'<li><span class="t"><span class="tag '+(r.phase==='post'?'post':'pre')+'">'+PH(r.phase)+'</span><span class="tag '+(r.kind==='想定'?'est':'act')+'">'+r.kind+'</span>'+esc(r.task)+'<small>'+fmtDate(r.at)+(r.memo?'　'+esc(r.memo):'')+'</small></span><span class="m">'+r.min+'分</span>'+((CFG.form||CFG.hook)?(r.sent?'<span class="tag act" style="white-space:nowrap">送付済み</span>':'<button class="btn s" data-send="'+r.id+'" style="padding:6px 10px;font-size:12px;background:var(--orange)">送付</button>'):'')+'<button class="btn del" data-id="'+r.id+'">削除</button></li>'}).join('');
+    else{l.innerHTML=S.recs.slice().reverse().map(function(r){return'<li><span class="t"><span class="tag '+(r.phase==='post'?'post':'pre')+'">'+PH(r.phase)+'</span><span class="tag '+(r.kind==='想定'?'est':'act')+'">'+r.kind+'</span>'+esc(r.task)+'<small>'+fmtDate(r.at)+(r.memo?'　'+esc(r.memo):'')+'</small></span><span class="m">'+r.min+'分</span>'+((CFG.form||CFG.hook)?(r.sent?'<span class="tag act" style="white-space:nowrap">送付済み</span>':'<button class="btn s" data-send="'+r.id+'" style="padding:6px 10px;font-size:12px;background:var(--orange)">送付</button>'):'')+((CFG.hook&&r.sent)?'':'<button class="btn del" data-id="'+r.id+'">削除</button>')+'</li>'}).join('');
       [].forEach.call(l.querySelectorAll('button[data-send]'),function(b){b.onclick=function(){var r=S.recs.filter(function(x){return String(x.id)===b.dataset.send})[0];if(r){if(CFG.hook)hookSend([r]).then(function(n){if(!n)toast('送付できませんでした')});else afterRecord(r,'');}}});
       [].forEach.call(l.querySelectorAll('button[data-id]'),function(b){b.onclick=function(){ask('この記録を削除しますか？','削除する',function(){S.recs=S.recs.filter(function(r){return String(r.id)!==b.dataset.id});save();renderList()})}})}
     $('mine').innerHTML=table(compare(S.recs,false),false);
@@ -399,7 +399,7 @@ pre.out{white-space:pre-wrap;font-size:12px;background:var(--gray);border-radius
   function toCSV(recs){return[HEAD.join(',')].concat(recs.map(function(r){return[r.name,r.task,PH(r.phase),fmtDate(r.at),r.min,r.kind,r.memo].map(cell).join(',')})).join('\n')}
   function renderSend(){$('out').textContent=S.recs.length?toCSV(S.recs):'まだ記録がありません'}
   function fname(){var d=new Date();return '業務時間の記録_'+(S.name||'名前なし')+'_'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'.csv'}
-  $('share').onclick=function(){if(!S.recs.length){toast('まだ記録がありません');return}saveFile(fname(),toCSV(S.recs),'保存しました。メールでお送りください')};
+  $('share').onclick=$('share2').onclick=function(e){if(e)e.preventDefault();if(!S.recs.length){toast('まだ記録がありません');return}saveFile(fname(),toCSV(S.recs),'保存しました。メールでお送りください')};
   function copyText(t){
     function fb(){var ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('コピーしました')}catch(e){toast('コピーできませんでした。枠の中を長押しして選んでください')}ta.remove()}
     try{navigator.clipboard.writeText(t).then(function(){toast('コピーしました')},fb)}catch(e){fb()}
